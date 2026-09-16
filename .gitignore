@@ -1,0 +1,18 @@
+# Ambientes virtuais
+.venv/
+venv/
+ENV/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+.ipynb_checkpoints/
+
+# Dados locais (para nao sobrecarregar o git)
+data/raw/
+data/processed/
+
+# Modelos exportados
+models/*.joblib
+models/*.pkl
