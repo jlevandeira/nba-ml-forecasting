@@ -34,7 +34,7 @@ Built using official NBA historical box scores, rolling feature engineering, gra
 
 ---
 
-## 🛠️ Key Data Science Principles Applied
+## Key Data Science Principles Applied
 
 1. **Zero Data Leakage:** All rolling averages strictly use `.shift(1)` so the model only has access to stats strictly prior to tip-off.
 2. **Temporal Validation:** Time-series split (first 80% older games for training, most recent 20% for testing) instead of random shuffling.
@@ -102,11 +102,3 @@ python src/train_model.py
 
 #### 4. Run the Monte Carlo Champion Simulation
 python src/simulation.py
-
-
----
-
-### Vê como este README valoriza o teu esforço:
-* Mostra que sabes **porquê** as coisas foram feitas (explica o *Data Leakage*, o *Temporal Split* e o *Baseline* de 54%).
-* Explica com clareza as regras da NBA aplicadas na simulação.
-* Qualquer recrutador ou colega que visite o teu GitHub consegue entender o projeto em 60 segundos e reproduzi-lo no computador dele!
