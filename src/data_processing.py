@@ -16,6 +16,10 @@ team_stats = []
 for team_id, team_df in df.groupby("TEAM_ID"):
     team_df = team_df.sort_values("GAME_DATE").copy()
 
+    # Calculates resting days
+    rest = (team_df["GAME_DATE"] - team_df["GAME_DATE"].shift(1)).dt.days
+    team_df["REST_DAYS"] = rest.fillna(3).clip(upper=5)
+
     for col in stats_cols:
         team_df[f"{col}_ROLLING_10"] = team_df[col].shift(1).rolling(10, min_periods=3).mean()
 
@@ -34,8 +38,15 @@ def define_winner(result):
 
 home["HOME_WIN"] = home["WL"].apply(define_winner)
 
-games_merged = pd.merge(home, away, on="GAME_ID", suffixes=("_HOME", "_AWAY"))
+games_merged = pd.merge(home, away, on="GAME_ID", suffixes=("_HOME", "_AWAY")) 
+games_merged["DIFF_REST"] = games_merged["REST_DAYS_HOME"] - games_merged["REST_DAYS_AWAY"] # Calculating the difference of rest
 
+for col in stats_cols:
+    home_row = f"{col}_ROLLING_10_HOME"
+    away_row = f"{col}_ROLLING_10_AWAY"
+
+    games_merged[f"DIFF_{col}"] = games_merged[home_row] - games_merged[away_row]
+    
 games_final = games_merged.dropna(subset=["PTS_ROLLING_10_HOME", "PTS_ROLLING_10_AWAY"])
 
 output_dir = os.path.join(SCRIPT_DIR, "data", "processed")

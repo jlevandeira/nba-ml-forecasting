@@ -1,8 +1,9 @@
 import os
 import pandas as pd
-from sklearn.linear_model import LogisticRegression
+# from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report
 from sklearn.preprocessing import StandardScaler
+from xgboost import XGBClassifier
 import joblib
 
 # Loading the data
@@ -18,8 +19,10 @@ df = df.sort_values("GAME_DATE_HOME").reset_index(drop=True)
 feature_cols = []
 
 for col in df.columns:
-    if "ROLLING_10" in col:
+    if "DIFF_" in col or "ROLLING_10" in col or "REST_DAYS" in col:
         feature_cols.append(col)
+
+print(f"Variables used for training {feature_cols}")
 
 X = df[feature_cols] #features
 Y = df["HOME_WIN"] #target variable
@@ -41,7 +44,7 @@ X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled = scaler.transform(X_test)
 
 # Training model
-model = LogisticRegression()
+model = XGBClassifier(n_estimators=100, max_depth=3, learning_rate=0.05, random_state=42)
 model.fit(X_train_scaled, Y_train)
 
 # Making predictions
@@ -58,5 +61,17 @@ os.makedirs(models_path, exist_ok=True)
 
 joblib.dump(model, os.path.join(models_path, "nba_model.joblib"))
 joblib.dump(scaler, os.path.join(models_path, "scaler.joblib"))
+
+important = []
+
+for i in range(len(feature_cols)):
+    name = feature_cols[i]
+    weight = model.feature_importances_[i]
+    important.append([weight, name])
+
+important.sort(reverse=True)
+
+for w, n in important[:5]:
+    print(f"{n}: {w*100:.1f}% importance")
 
 print(f"Model and scaler saved to {models_path}")
