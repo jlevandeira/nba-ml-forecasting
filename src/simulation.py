@@ -22,10 +22,6 @@ df = df.sort_values("GAME_DATE_HOME")
 
 stats = ["PTS", "FG_PCT", "FG3_PCT", "FT_PCT", "AST", "REB", "STL", "BLK", "TOV"]
 
-stats_row = []
-for s in stats:
-    stats_row.append(f"{s}_ROLLING_10_HOME")
-
 team_profile = {}
 all_teams = df["TEAM_ABBREVIATION_HOME"].unique()
 
@@ -34,21 +30,36 @@ for team in all_teams:
     last_game = team_games.iloc[-1] # Getting the last game played by the team
 
 # Getting the values for the last game played by a team and storing them in a list
-    team_values = []
-    for r in stats_row:
-        value = last_game[r]
-        team_values.append(value)
+    team_values = {}
+    for r in stats:
+        row = f"{r}_ROLLING_10_HOME"
+        team_values[r] = last_game[row]
+        
 
     team_profile[team] = team_values # Storing a list associated with a team
 
 # Function to calculate the probability of a home team winning against an away team
 def game_probability(home_team, away_team):
-    features = team_profile[home_team] + team_profile[away_team] # Concatenating the features of both teams
-    features_array = np.array(features).reshape(1, -1) # The model expects a 2D array as input
-    features_scaled = scaler.transform(features_array) # Scaling the features
+    features = []
 
+    # Individual stats, home, away and difference
+    for s in stats:
+        home_value = team_profile[home_team][s]
+        away_value = team_profile[away_team][s]
+        diff_value = home_value - away_value
+
+        features.append(home_value)
+        features.append(away_value)
+        features.append(diff_value)
+
+    # Converts to a numpy matrix, not as heavy as pandas
+    features_array = np.array([features])
+
+    # Normalize and calculate the probability
+    features_scaled = scaler.transform(features_array)
     probability = model.predict_proba(features_scaled)
-    probability_home = probability[0][1] # Getting the probability of the home team winning
+    probability_home = probability[0][1]
+
     return probability_home
 
 def simulate_game(home_team, away_team):
@@ -158,8 +169,8 @@ def simulate_full_season():
     return champ
 
 # MCTS cicle at least 10000 simulations
-n = 10000
-print("\nStarting the simulation with Monte Carlo during Regual season and Playoffs...")
+n = 1000
+print("\nStarting the simulation with Monte Carlo during Regular season and Playoffs...")
 print(f"Simulating {n} seasons...")
 
 champions_count = {}
@@ -167,7 +178,7 @@ champions_count = {}
 for i in range(n):
     # Prints an update for each 200 season that gets simulated, to see the progress
     if(i+1) % 200 == 0: 
-        print(f"Seaons simulated: {i+1}/{n}")
+        print(f"Seasons simulated: {i+1}/{n}")
 
     champion = simulate_full_season()
     if champion in champions_count:
@@ -184,5 +195,11 @@ final_rank = []
 for team in champions_count:
     titles = champions_count[team]
     final_rank.append([titles, team])
-    percentage = (titles/n)* 100
-    print(f"{team}: {percentage:.1f}% probability({titles} titles in {n} simulations)")
+
+final_rank.sort(reverse=True)
+
+for i in final_rank:
+    titles = i[0]
+    team = i[1]
+    per = (titles/n)*100
+    print(f"{team}: {per:.1f}% probability({titles} titles in {n} simulations)")

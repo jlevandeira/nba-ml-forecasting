@@ -16,11 +16,13 @@ df["GAME_DATE_HOME"] = pd.to_datetime(df["GAME_DATE_HOME"])
 df = df.sort_values("GAME_DATE_HOME").reset_index(drop=True)
 
 # Defining features and target variable
-feature_cols = []
+stats = ["PTS", "FG_PCT", "FG3_PCT", "FT_PCT", "AST", "REB", "STL", "BLK", "TOV"]
 
-for col in df.columns:
-    if "DIFF_" in col or "ROLLING_10" in col or "REST_DAYS" in col:
-        feature_cols.append(col)
+feature_cols = []
+for s in stats:
+    feature_cols.append(f"{s}_ROLLING_10_HOME")
+    feature_cols.append(f"{s}_ROLLING_10_AWAY")
+    feature_cols.append(f"DIFF_{s}")
 
 print(f"Variables used for training {feature_cols}")
 
@@ -74,4 +76,5 @@ important.sort(reverse=True)
 for w, n in important[:5]:
     print(f"{n}: {w*100:.1f}% importance")
 
+print()
 print(f"Model and scaler saved to {models_path}")
