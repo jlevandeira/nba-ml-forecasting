@@ -51,7 +51,6 @@ ML-NBA/
 │   ├── raw/                   # Raw historical game logs
 │   └── processed/             # Cleaned feature tables ready for modeling
 ├── models/                    # Serialized models and scalers (.joblib)
-├── THEORY.md                  # Comprehensive mathematical and theoretical documentation
 ├── requirements.txt           # Project dependencies
 └── README.md                  # Project overview and instructions
 ```
